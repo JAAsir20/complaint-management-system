@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Complaint Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="page-container">
+      <div class="header-inner">
+        <a href="dashboard.html" class="logo">
+          <div class="logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          Complaint Management
+        </a>
+        <nav id="main-nav"></nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-container">
+      <div>
+        <h1 id="welcome-title">Welcome back</h1>
+        <p>Here's an overview of your complaints.</p>
+      </div>
+
+      <div class="stats-grid" id="stats"></div>
+
+      <div>
+        <div class="page-header">
+          <h2>Recent Complaints</h2>
+          <a href="complaint-new.html" class="btn btn-primary-solid">+ New Complaint</a>
+        </div>
+        <div class="card" id="complaints-list"></div>
+        <a href="complaints.html" id="view-all-link" class="table-link" style="display:inline-block;margin-top:1rem;">View all complaints →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="page-container">
+      <p>&copy; <span id="year"></span> Complaint Management System.</p>
+    </div>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const user = requireAuth();
+    if (!user) return;
+
+    document.getElementById('welcome-title').textContent = `Welcome back, ${user.username}`;
+    document.getElementById('main-nav').innerHTML = `
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="complaints.html">My Complaints</a>
+      <a href="complaint-new.html">New Complaint</a>
+      <a href="profile.html">Profile</a>
+      <button type="button" onclick="logout(); location.href='index.html'">Logout</button>
+    `;
+
+    const myComplaints = mockComplaints.filter(c => c.userID === 1);
+    const openCount = myComplaints.filter(c => c.status === 'Open' || c.status === 'In Progress').length;
+    const resolvedCount = myComplaints.filter(c => c.status === 'Resolved' || c.status === 'Closed').length;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-card">
+        <p>Total Complaints</p>
+        <p>${myComplaints.length}</p>
+      </div>
+      <div class="stat-card">
+        <p>Open / In Progress</p>
+        <p style="color: var(--primary-600)">${openCount}</p>
+      </div>
+      <div class="stat-card">
+        <p>Resolved</p>
+        <p style="color: var(--emerald-600)">${resolvedCount}</p>
+      </div>
+    `;
+
+    const listEl = document.getElementById('complaints-list');
+    if (myComplaints.length === 0) {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <p>You haven't submitted any complaints yet.</p>
+          <a href="complaint-new.html">Submit your first complaint →</a>
+        </div>
+      `;
+      document.getElementById('view-all-link').style.display = 'none';
+    } else {
+      listEl.innerHTML = myComplaints.slice(0, 5).map(c => `
+        <a href="complaint-detail.html?id=${c.complaintID}" class="complaint-item">
+          <div class="complaint-item-header">
+            <div>
+              <p class="complaint-item-title">${c.title}</p>
+              <p class="complaint-item-desc">${c.description}</p>
+            </div>
+            <span class="badge ${getStatusBadgeClass(c.status)}">${c.status}</span>
+          </div>
+          <p class="complaint-item-meta">#${c.complaintID} · Updated ${new Date(c.updatedAt).toLocaleDateString()}</p>
+        </a>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

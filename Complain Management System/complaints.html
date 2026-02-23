@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Complaints - Complaint Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="page-container">
+      <div class="header-inner">
+        <a href="dashboard.html" class="logo">
+          <div class="logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          Complaint Management
+        </a>
+        <nav id="main-nav"></nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-container">
+      <div class="page-header">
+        <div>
+          <h1>My Complaints</h1>
+          <p>View and track all your submitted complaints.</p>
+        </div>
+        <a href="complaint-new.html" class="btn btn-primary-solid">+ New Complaint</a>
+      </div>
+      <div class="card table-container" id="complaints-table"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="page-container">
+      <p>&copy; <span id="year"></span> Complaint Management System.</p>
+    </div>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const user = requireAuth();
+    if (!user) return;
+
+    document.getElementById('main-nav').innerHTML = `
+      <a href="dashboard.html">Dashboard</a>
+      <a href="complaints.html" class="active">My Complaints</a>
+      <a href="complaint-new.html">New Complaint</a>
+      <a href="profile.html">Profile</a>
+      <button type="button" onclick="logout(); location.href='index.html'">Logout</button>
+    `;
+
+    const myComplaints = mockComplaints.filter(c => c.userID === 1);
+    const tableEl = document.getElementById('complaints-table');
+
+    if (myComplaints.length === 0) {
+      tableEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <p>No complaints yet</p>
+          <a href="complaint-new.html">Submit your first complaint →</a>
+        </div>
+      `;
+    } else {
+      tableEl.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th style="text-align:right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${myComplaints.map(c => `
+              <tr>
+                <td>#${c.complaintID}</td>
+                <td>
+                  <p style="font-weight:500">${c.title}</p>
+                  <p style="font-size:0.875rem;color:var(--slate-500)">${c.description.substring(0, 50)}...</p>
+                </td>
+                <td>${getCategoryName(c.categoryID)}</td>
+                <td><span class="badge ${getStatusBadgeClass(c.status)}">${c.status}</span></td>
+                <td>${new Date(c.createdAt).toLocaleDateString()}</td>
+                <td style="text-align:right"><a href="complaint-detail.html?id=${c.complaintID}" class="table-link">View</a></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Complaint Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="page-container">
+      <div class="header-inner">
+        <a href="dashboard.html" class="logo">
+          <div class="logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          Complaint Management
+        </a>
+        <nav id="main-nav"></nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-container" style="max-width: 42rem;">
+      <h1>Profile Settings</h1>
+      <p>Manage your account information.</p>
+      <form id="profile-form" class="card" style="margin-top: 2rem; padding: 2rem;">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username">
+        </div>
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email">
+        </div>
+        <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+          <p style="font-size: 0.875rem; color: var(--slate-500);">User ID: <span id="user-id"></span></p>
+          <button type="submit" class="btn btn-primary-solid">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <div class="page-container">
+      <p>&copy; <span id="year"></span> Complaint Management System.</p>
+    </div>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const user = requireAuth();
+    if (!user) return;
+
+    document.getElementById('main-nav').innerHTML = `
+      <a href="dashboard.html">Dashboard</a>
+      <a href="complaints.html">My Complaints</a>
+      <a href="complaint-new.html">New Complaint</a>
+      <a href="profile.html" class="active">Profile</a>
+      <button type="button" onclick="logout(); location.href='index.html'">Logout</button>
+    `;
+
+    document.getElementById('username').value = user.username;
+    document.getElementById('email').value = user.email;
+    document.getElementById('user-id').textContent = user.userID;
+
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('button[type="submit"]');
+      btn.textContent = 'Saved!';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = 'Save Changes';
+        btn.disabled = false;
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Complaint - Complaint Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="page-container">
+      <div class="header-inner">
+        <a href="dashboard.html" class="logo">
+          <div class="logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          Complaint Management
+        </a>
+        <nav id="main-nav"></nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-container" style="max-width: 42rem;">
+      <h1>Submit a Complaint</h1>
+      <p>Describe your issue and we'll get back to you as soon as possible.</p>
+      <form id="complaint-form" class="card" style="margin-top: 2rem; padding: 2rem;">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category"></select>
+        </div>
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" id="title" required placeholder="Brief summary of your complaint">
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" rows="5" required placeholder="Provide detailed information about your complaint..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Attachments (optional)</label>
+          <div class="upload-area">
+            <p>Drag and drop files here, or click to browse</p>
+          </div>
+        </div>
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary-solid" style="flex:1">Submit Complaint</button>
+          <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <div class="page-container">
+      <p>&copy; <span id="year"></span> Complaint Management System.</p>
+    </div>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const user = requireAuth();
+    if (!user) return;
+
+    document.getElementById('main-nav').innerHTML = `
+      <a href="dashboard.html">Dashboard</a>
+      <a href="complaints.html">My Complaints</a>
+      <a href="complaint-new.html" class="active">New Complaint</a>
+      <a href="profile.html">Profile</a>
+      <button type="button" onclick="logout(); location.href='index.html'">Logout</button>
+    `;
+
+    const categorySelect = document.getElementById('category');
+    mockCategories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.categoryID;
+      opt.textContent = cat.categoryName;
+      categorySelect.appendChild(opt);
+    });
+
+    document.getElementById('complaint-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('button[type="submit"]');
+      btn.textContent = 'Submitting...';
+      btn.disabled = true;
+      setTimeout(() => {
+        window.location.href = 'complaints.html';
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaint Detail - Complaint Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="page-container">
+      <div class="header-inner">
+        <a href="dashboard.html" class="logo">
+          <div class="logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          Complaint Management
+        </a>
+        <nav id="main-nav"></nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-container" style="max-width: 48rem;">
+      <a href="complaints.html" class="back-link">← Back to complaints</a>
+      <div class="card" id="complaint-content"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="page-container">
+      <p>&copy; <span id="year"></span> Complaint Management System.</p>
+    </div>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const user = requireAuth();
+    if (!user) return;
+
+    document.getElementById('main-nav').innerHTML = `
+      <a href="dashboard.html">Dashboard</a>
+      <a href="complaints.html">My Complaints</a>
+      <a href="complaint-new.html">New Complaint</a>
+      <a href="profile.html">Profile</a>
+      <button type="button" onclick="logout(); location.href='index.html'">Logout</button>
+    `;
+
+    const params = new URLSearchParams(location.search);
+    const id = parseInt(params.get('id'), 10);
+    const complaint = mockComplaints.find(c => c.complaintID === id);
+    const category = complaint ? mockCategories.find(c => c.categoryID === complaint.categoryID) : null;
+    const responses = complaint ? mockResponses.filter(r => r.complaintID === complaint.complaintID) : [];
+    const feedback = complaint ? mockFeedback.find(f => f.complaintID === complaint.complaintID) : null;
+
+    const contentEl = document.getElementById('complaint-content');
+    if (!complaint) {
+      contentEl.innerHTML = `
+        <div class="empty-state">
+          <p>Complaint not found.</p>
+          <a href="complaints.html">Back to complaints</a>
+        </div>
+      `;
+    } else {
+      const canSubmitFeedback = (complaint.status === 'Resolved' || complaint.status === 'Closed') && !feedback;
+      contentEl.innerHTML = `
+        <div class="detail-section">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
+            <div>
+              <span style="font-size:0.875rem;color:var(--slate-500)">#${complaint.complaintID}</span>
+              <h1 style="font-size:1.5rem;font-weight:700;margin-top:0.25rem">${complaint.title}</h1>
+              <p style="margin-top:0.5rem;color:var(--slate-600)">${complaint.description}</p>
+            </div>
+            <span class="badge ${getStatusBadgeClass(complaint.status)}">${complaint.status}</span>
+          </div>
+          <div class="detail-meta">
+            Category: ${category ? category.categoryName : '-'} · 
+            Created: ${new Date(complaint.createdAt).toLocaleString()} · 
+            Updated: ${new Date(complaint.updatedAt).toLocaleString()}
+          </div>
+        </div>
+        <div class="detail-section">
+          <h2>Responses</h2>
+          ${responses.length === 0 
+            ? '<p style="margin-top:1rem;color:var(--slate-500)">No responses yet. Our team will get back to you soon.</p>'
+            : responses.map(r => `
+              <div class="response-item">
+                <p>${r.responseText}</p>
+                <p class="response-meta">${r.authorName} · ${new Date(r.responseDate).toLocaleString()}</p>
+              </div>
+            `).join('')
+          }
+        </div>
+        ${canSubmitFeedback ? `
+        <div class="detail-section">
+          <h2>Submit Feedback</h2>
+          <p style="font-size:0.875rem;color:var(--slate-500);margin-top:0.25rem">How was your experience with the resolution?</p>
+          <form id="feedback-form" style="margin-top:1rem">
+            <div class="form-group">
+              <label>Rating</label>
+              <div class="rating-stars" id="rating-stars">
+                ${[1,2,3,4,5].map(i => `<button type="button" data-rating="${i}">★</button>`).join('')}
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="comments">Comments</label>
+              <textarea id="comments" rows="3" placeholder="Optional feedback..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary-solid" style="margin-top:1rem">Submit Feedback</button>
+          </form>
+        </div>
+        ` : ''}
+        ${feedback ? `
+        <div class="detail-section" style="background:var(--emerald-100);background:rgba(209,250,229,0.5)">
+          <h2>Your Feedback</h2>
+          <div class="rating-stars" style="pointer-events:none">
+            ${[1,2,3,4,5].map(i => `<span style="color:${i<=feedback.rating?'#f59e0b':'var(--slate-300)'}">★</span>`).join('')}
+          </div>
+          ${feedback.comments ? `<p style="margin-top:0.5rem;color:var(--slate-600)">${feedback.comments}</p>` : ''}
+        </div>
+        ` : ''}
+      `;
+
+      if (canSubmitFeedback) {
+        let rating = 0;
+        const stars = document.querySelectorAll('#rating-stars button');
+        stars.forEach(btn => {
+          btn.addEventListener('click', () => {
+            rating = parseInt(btn.dataset.rating, 10);
+            stars.forEach((s, i) => s.classList.toggle('active', i < rating));
+          });
+        });
+        document.getElementById('feedback-form').addEventListener('submit', function(e) {
+          e.preventDefault();
+          this.innerHTML = '<p style="color:var(--emerald-600);font-weight:500">Thank you for your feedback!</p>';
+        });
+      }
+    }
+  </script>
+</body>
+</html>
